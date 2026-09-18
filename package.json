@@ -1,0 +1,43 @@
+{
+  "name": "opencode-orchestrator-plugin",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Orchestrator-only OpenCode plugin: a tool-less primary agent that delegates everything to explore/shell-runner/coder subagents.",
+  "license": "MIT",
+  "author": "bernoussama",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bernoussama/opencode-orchestrator-plugin.git"
+  },
+  "homepage": "https://github.com/bernoussama/opencode-orchestrator-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/bernoussama/opencode-orchestrator-plugin/issues"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "orchestrator",
+    "subagents",
+    "ai-agents"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "agents/",
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opencode/plugin": "^2.0.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
