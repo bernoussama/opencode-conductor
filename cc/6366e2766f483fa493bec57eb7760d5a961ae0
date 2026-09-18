@@ -1,0 +1,22 @@
+README.md
+  h_3334a729b2507f 14-23,25
+package.json
+  h_3334a729b2507f 3
+src/agents.test.ts
+  h_3334a729b2507f 1-25
+src/agents.ts
+  h_3334a729b2507f 1-8
+src/index.ts
+  h_3334a729b2507f 2-4,29,52,57-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cc6366e2766f483fa493bec57eb7760d5a961ae0",
+  "prompts": {},
+  "humans": {
+    "h_3334a729b2507f": {
+      "author": "Oussama Bernou <oussama.bernou@outlook.com>"
+    }
+  }
+}
