@@ -1,5 +1,5 @@
 {
-  "name": "@bernoussama/opencode-conductor-plugin",
+  "name": "@bernoussama/opencode-conductor",
   "version": "0.2.0",
   "type": "module",
   "description": "Conductor-only OpenCode plugin: a tool-less primary agent that delegates everything to explore/shell-runner/coder subagents.",
@@ -7,11 +7,11 @@
   "author": "bernoussama",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bernoussama/opencode-conductor-plugin.git"
+    "url": "git+https://github.com/bernoussama/opencode-conductor.git"
   },
-  "homepage": "https://github.com/bernoussama/opencode-conductor-plugin#readme",
+  "homepage": "https://github.com/bernoussama/opencode-conductor#readme",
   "bugs": {
-    "url": "https://github.com/bernoussama/opencode-conductor-plugin/issues"
+    "url": "https://github.com/bernoussama/opencode-conductor/issues"
   },
   "keywords": [
     "opencode",

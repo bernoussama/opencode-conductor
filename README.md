@@ -1,4 +1,4 @@
-# opencode-conductor-plugin
+# opencode-conductor
 
 Conductor-only OpenCode setup: a tool-less primary agent that delegates everything to three subagents.
 
@@ -16,7 +16,7 @@ missing `.opencode/agents/conductor*.md` files for the current location
 (never overwrites) and reloads agents. So installing the package is enough:
 
 ```jsonc
-{ "plugins": ["opencode-conductor-plugin"] }
+{ "plugins": ["@bernoussama/opencode-conductor"] }
 ```
 
 Disable with `{ "options": { "installAgents": false } }` and manage files by hand:
