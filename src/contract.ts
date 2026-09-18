@@ -1,9 +1,9 @@
-export const ORCHESTRATOR_ID = "orchestrator";
+export const CONDUCTOR_ID = "conductor";
 
 export const WORKER_IDS = [
-  "orchestrator/explore",
-  "orchestrator/shell-runner",
-  "orchestrator/coder",
+  "conductor/explore",
+  "conductor/shell-runner",
+  "conductor/coder",
 ] as const;
 
 export type WorkerID = (typeof WORKER_IDS)[number];
@@ -31,7 +31,7 @@ export function stripTools(
   return out;
 }
 
-export function buildOrchestratorPermissions(
+export function buildConductorPermissions(
   workerIDs: readonly string[],
   enableQuestion: boolean,
 ): PermissionRule[] {

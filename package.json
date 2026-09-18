@@ -1,22 +1,22 @@
 {
-  "name": "opencode-orchestrator-plugin",
+  "name": "@bernoussama/opencode-conductor-plugin",
   "version": "0.2.0",
   "type": "module",
-  "description": "Orchestrator-only OpenCode plugin: a tool-less primary agent that delegates everything to explore/shell-runner/coder subagents.",
+  "description": "Conductor-only OpenCode plugin: a tool-less primary agent that delegates everything to explore/shell-runner/coder subagents.",
   "license": "MIT",
   "author": "bernoussama",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bernoussama/opencode-orchestrator-plugin.git"
+    "url": "git+https://github.com/bernoussama/opencode-conductor-plugin.git"
   },
-  "homepage": "https://github.com/bernoussama/opencode-orchestrator-plugin#readme",
+  "homepage": "https://github.com/bernoussama/opencode-conductor-plugin#readme",
   "bugs": {
-    "url": "https://github.com/bernoussama/opencode-orchestrator-plugin/issues"
+    "url": "https://github.com/bernoussama/opencode-conductor-plugin/issues"
   },
   "keywords": [
     "opencode",
     "opencode-plugin",
-    "orchestrator",
+    "conductor",
     "subagents",
     "ai-agents"
   ],

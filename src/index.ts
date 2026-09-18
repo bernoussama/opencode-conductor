@@ -3,10 +3,10 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { AGENT_FILES } from "./agents";
 import {
-  ORCHESTRATOR_ID,
+  CONDUCTOR_ID,
   WORKER_IDS,
   buildMaxVariant,
-  buildOrchestratorPermissions,
+  buildConductorPermissions,
   fillUnset,
   isSet,
   parseModelRef,
@@ -14,13 +14,13 @@ import {
   stripTools,
 } from "./contract";
 
-const DEFAULT_ORCHESTRATOR_MODEL = "cliproxy/gpt-5.6-sol#high";
+const DEFAULT_CONDUCTOR_MODEL = "cliproxy/gpt-5.6-sol#high";
 const DEFAULT_WORKER_MODEL = "opencode/muse-spark-1.3-contributor-free#xhigh";
 const DEFAULT_WORKER_FALLBACK_MODEL = "opencode/muse-spark-1.3-contributor-free#high";
 
 interface Options {
-  orchestratorId?: string;
-  orchestratorModel?: string;
+  conductorId?: string;
+  conductorModel?: string;
   workerModel?: string;
   workerFallbackModel?: string;
   maxVariantSettings?: Record<string, unknown>;
@@ -29,8 +29,8 @@ interface Options {
   installAgents?: boolean;
 }
 
-const ORCHESTRATOR_SYSTEM_APPEND =
-  "You are an orchestrator. You never read files, edit files, or run shell commands directly: you have no direct tools. Delegate every concrete step to one of your subagents with a self-contained prompt (goal, constraints, repo paths, and the exact return shape you need). Fan out independent work in parallel with background subagents, then synthesize results into a decision-ready answer. Ask workers for distilled summaries, never raw transcripts.";
+const CONDUCTOR_SYSTEM_APPEND =
+  "You are an conductor. You never read files, edit files, or run shell commands directly: you have no direct tools. Delegate every concrete step to one of your subagents with a self-contained prompt (goal, constraints, repo paths, and the exact return shape you need). Fan out independent work in parallel with background subagents, then synthesize results into a decision-ready answer. Ask workers for distilled summaries, never raw transcripts.";
 
 function workerKind(id: string): "explore" | "shell-runner" | "coder" | null {
   if (id.endsWith("/explore")) return "explore";
@@ -40,11 +40,11 @@ function workerKind(id: string): "explore" | "shell-runner" | "coder" | null {
 }
 
 export default Plugin.define({
-  id: "orchestrator",
+  id: "conductor",
   async setup(ctx: any) {
     const opts: Options = ctx.options ?? {};
-    const orchestratorId = opts.orchestratorId ?? ORCHESTRATOR_ID;
-    const orchestratorModel = opts.orchestratorModel ?? DEFAULT_ORCHESTRATOR_MODEL;
+    const conductorId = opts.conductorId ?? CONDUCTOR_ID;
+    const conductorModel = opts.conductorModel ?? DEFAULT_CONDUCTOR_MODEL;
     const workerModel = opts.workerModel ?? DEFAULT_WORKER_MODEL;
     const workerFallback = opts.workerFallbackModel ?? DEFAULT_WORKER_FALLBACK_MODEL;
     const enableQuestion = opts.enableQuestion ?? true;
@@ -78,7 +78,7 @@ export default Plugin.define({
           }
         }
       } catch (err) {
-        console.warn(`[orchestrator] agent self-install failed: ${String(err)}`);
+        console.warn(`[conductor] agent self-install failed: ${String(err)}`);
       }
     }
 
@@ -109,13 +109,13 @@ export default Plugin.define({
         break;
       }
     } catch (err) {
-      console.warn(`[orchestrator] could not probe provider variants: ${String(err)}`);
+      console.warn(`[conductor] could not probe provider variants: ${String(err)}`);
     }
 
     const effectiveWorkerModel = selectWorkerModel(sourceVariants as any, workerModel, workerFallback);
     if (effectiveWorkerModel !== workerModel) {
       console.warn(
-        `[orchestrator] variant "${preferredRef.variant ?? "?"}" not served for ${preferredRef.providerID}/${workerBase}; workers use fallback ${workerFallback}`,
+        `[conductor] variant "${preferredRef.variant ?? "?"}" not served for ${preferredRef.providerID}/${workerBase}; workers use fallback ${workerFallback}`,
       );
     }
 
@@ -137,7 +137,7 @@ export default Plugin.define({
         });
         void variantId;
       } catch (err) {
-        console.warn(`[orchestrator] could not register variant: ${String(err)}`);
+        console.warn(`[conductor] could not register variant: ${String(err)}`);
       }
     }
 
@@ -152,21 +152,21 @@ export default Plugin.define({
           }
         };
 
-        if (has(orchestratorId)) {
-          editor.update(orchestratorId, (agent: any) => {
+        if (has(conductorId)) {
+          editor.update(conductorId, (agent: any) => {
             const filled = fillUnset(agent, {
               mode: "primary",
-              model: orchestratorModel,
+              model: conductorModel,
               description: "Delegates all work via subagents. Has no direct tools.",
             });
             Object.assign(agent, filled);
             if (!isSet(agent.permissions) || (Array.isArray(agent.permissions) && agent.permissions.length === 0)) {
-              agent.permissions = buildOrchestratorPermissions(WORKER_IDS as unknown as string[], enableQuestion);
+              agent.permissions = buildConductorPermissions(WORKER_IDS as unknown as string[], enableQuestion);
             }
           });
         } else {
           console.warn(
-            `[orchestrator] agent "${orchestratorId}" not found — create .opencode/agents/orchestrator.md (see plugin README). Skipping default selection to avoid falling back to build.`,
+            `[conductor] agent "${conductorId}" not found — create .opencode/agents/conductor.md (see plugin README). Skipping default selection to avoid falling back to build.`,
           );
         }
 
@@ -175,7 +175,7 @@ export default Plugin.define({
 
         for (const id of Object.keys(workerModels)) {
           if (!has(id)) {
-            console.warn(`[orchestrator] worker agent "${id}" not found — add its agent file (see plugin README).`);
+            console.warn(`[conductor] worker agent "${id}" not found — add its agent file (see plugin README).`);
             continue;
           }
           editor.update(id, (agent: any) => {
@@ -186,29 +186,29 @@ export default Plugin.define({
           });
         }
 
-        if (setDefault && has(orchestratorId)) {
+        if (setDefault && has(conductorId)) {
           try {
-            editor.default(orchestratorId);
+            editor.default(conductorId);
           } catch (err) {
-            console.warn(`[orchestrator] could not set default agent: ${String(err)}`);
+            console.warn(`[conductor] could not set default agent: ${String(err)}`);
           }
         }
       });
     } catch (err) {
-      console.warn(`[orchestrator] agent transform failed: ${String(err)}`);
+      console.warn(`[conductor] agent transform failed: ${String(err)}`);
     }
 
-    // 3. Hide tool schemas from the orchestrator on every tool-bearing request.
+    // 3. Hide tool schemas from the conductor on every tool-bearing request.
     // Permissions remain the security boundary; this controls context size/behavior.
     const strip = (event: any) => {
       try {
-        if (event.agent !== orchestratorId) return;
+        if (event.agent !== conductorId) return;
         if (!event.tools || typeof event.tools !== "object") return;
         const kept = stripTools(event.tools, keepTools);
         for (const key of Object.keys(event.tools)) delete event.tools[key];
         Object.assign(event.tools, kept);
         if (Array.isArray(event.system)) {
-          event.system.push({ type: "text", text: ORCHESTRATOR_SYSTEM_APPEND });
+          event.system.push({ type: "text", text: CONDUCTOR_SYSTEM_APPEND });
         }
       } catch {
         // Never break a model request from a hook.
@@ -219,7 +219,7 @@ export default Plugin.define({
       try {
         await ctx.session.hook(name, strip);
       } catch (err) {
-        console.warn(`[orchestrator] could not register ${name} hook: ${String(err)}`);
+        console.warn(`[conductor] could not register ${name} hook: ${String(err)}`);
       }
     }
   },

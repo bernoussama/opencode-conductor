@@ -9,10 +9,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 describe("AGENT_FILES", () => {
   test("covers all four managed agents", () => {
     expect(Object.keys(AGENT_FILES).sort()).toEqual([
-      "orchestrator.md",
-      "orchestrator/coder.md",
-      "orchestrator/explore.md",
-      "orchestrator/shell-runner.md",
+      "conductor.md",
+      "conductor/coder.md",
+      "conductor/explore.md",
+      "conductor/shell-runner.md",
     ]);
   });
 

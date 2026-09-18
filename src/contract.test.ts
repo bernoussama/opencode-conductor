@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
-  ORCHESTRATOR_ID,
+  CONDUCTOR_ID,
   WORKER_IDS,
   buildMaxVariant,
-  buildOrchestratorPermissions,
+  buildConductorPermissions,
   fillUnset,
   isSet,
   parseModelRef,
@@ -12,7 +12,7 @@ import {
 } from "./contract";
 
 describe("stripTools", () => {
-  test("keeps only subagent and question for orchestrator", () => {
+  test("keeps only subagent and question for conductor", () => {
     const tools = {
       subagent: { description: "s", input: {} },
       question: { description: "q", input: {} },
@@ -42,9 +42,9 @@ describe("stripTools", () => {
   });
 });
 
-describe("buildOrchestratorPermissions", () => {
+describe("buildConductorPermissions", () => {
   test("denies all first, allows narrow subagents + question last", () => {
-    const rules = buildOrchestratorPermissions(WORKER_IDS, true);
+    const rules = buildConductorPermissions(WORKER_IDS, true);
     expect(rules[0]).toEqual({ action: "*", resource: "*", effect: "deny" });
     const allows = rules.filter((r) => r.effect === "allow");
     expect(allows).toContainEqual({ action: "question", resource: "*", effect: "allow" });
@@ -56,18 +56,18 @@ describe("buildOrchestratorPermissions", () => {
   });
 
   test("omits question allow when disabled", () => {
-    const rules = buildOrchestratorPermissions(WORKER_IDS, false);
+    const rules = buildConductorPermissions(WORKER_IDS, false);
     expect(rules.some((r) => r.action === "question")).toBe(false);
   });
 });
 
-describe("orchestrator constants", () => {
+describe("conductor constants", () => {
   test("uses namespaced worker ids (no builtin explore collision)", () => {
-    expect(ORCHESTRATOR_ID).toBe("orchestrator");
+    expect(CONDUCTOR_ID).toBe("conductor");
     expect(WORKER_IDS).toEqual([
-      "orchestrator/explore",
-      "orchestrator/shell-runner",
-      "orchestrator/coder",
+      "conductor/explore",
+      "conductor/shell-runner",
+      "conductor/coder",
     ]);
     expect(WORKER_IDS).not.toContain("explore");
   });
