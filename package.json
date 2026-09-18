@@ -1,6 +1,6 @@
 {
   "name": "opencode-orchestrator-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Orchestrator-only OpenCode plugin: a tool-less primary agent that delegates everything to explore/shell-runner/coder subagents.",
   "license": "MIT",

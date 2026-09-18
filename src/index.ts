@@ -1,4 +1,7 @@
 import { Plugin } from "@opencode/plugin";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { AGENT_FILES } from "./agents";
 import {
   ORCHESTRATOR_ID,
   WORKER_IDS,
@@ -23,6 +26,7 @@ interface Options {
   maxVariantSettings?: Record<string, unknown>;
   enableQuestion?: boolean;
   setDefault?: boolean;
+  installAgents?: boolean;
 }
 
 const ORCHESTRATOR_SYSTEM_APPEND =
@@ -45,9 +49,38 @@ export default Plugin.define({
     const workerFallback = opts.workerFallbackModel ?? DEFAULT_WORKER_FALLBACK_MODEL;
     const enableQuestion = opts.enableQuestion ?? true;
     const setDefault = opts.setDefault ?? true;
+    const installAgents = opts.installAgents ?? true;
     const maxSettings = opts.maxVariantSettings ?? { reasoningEffort: "max" };
 
     const keepTools = enableQuestion ? ["subagent", "question"] : ["subagent"];
+
+    // 0. Self-install agent definitions. The agent API has no `add`, so this
+    // is how plugins ship custom agents: write missing .md files, then reload.
+    // Fill-unset semantics: never overwrite an existing file.
+    if (installAgents) {
+      try {
+        const base = (ctx.location as any)?.directory;
+        if (typeof base === "string" && base) {
+          let wrote = 0;
+          for (const [rel, content] of Object.entries(AGENT_FILES)) {
+            const target = join(base, ".opencode", "agents", rel);
+            if (existsSync(target)) continue;
+            mkdirSync(dirname(target), { recursive: true });
+            writeFileSync(target, content, "utf8");
+            wrote++;
+          }
+          if (wrote > 0) {
+            try {
+              await ctx.agent.reload();
+            } catch {
+              // Watcher picks up the files even if reload is unavailable.
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`[orchestrator] agent self-install failed: ${String(err)}`);
+      }
+    }
 
     // 1. Resolve the worker model against the LIVE provider catalog.
     // The #max variant only works if the proxy actually serves it; the runner

@@ -11,18 +11,21 @@ Permissions are the security boundary; per-request tool stripping (`context`/`co
 
 ## Install
 
+The plugin self-installs its agents on first load: `setup()` writes any
+missing `.opencode/agents/orchestrator*.md` files for the current location
+(never overwrites) and reloads agents. So installing the package is enough:
+
+```jsonc
+{ "plugins": ["opencode-orchestrator-plugin"] }
+```
+
+Disable with `{ "options": { "installAgents": false } }` and manage files by hand:
+
 ```sh
-# 1. Agents (plugin API cannot create agents, so copy them)
+# Manual alternative
 mkdir -p ~/.config/opencode/agents
 cp agents/orchestrator.md ~/.config/opencode/agents/orchestrator.md
 cp -r agents/orchestrator ~/.config/opencode/agents/orchestrator
-
-# 2. Plugin (option A: auto-discovered global plugin dir)
-mkdir -p ~/.config/opencode/plugins
-cp -r . ~/.config/opencode/plugins/orchestrator
-
-# 2. Plugin (option B: reference by path in opencode.jsonc)
-# { "plugins": [{ "package": "/abs/path/opencode-orchestrator", "options": {...} }] }
 ```
 
 Then `opencode service restart`.
