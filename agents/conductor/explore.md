@@ -1,7 +1,7 @@
 ---
 description: Maps code and researches read-only. Returns file paths, key snippets, and architecture notes without editing anything.
 mode: subagent
-model: opencode/muse-spark-1.3-contributor-free#xhigh
+model: cliproxy/revcmd/deepseek-v4.1-flash#max
 steps: 10
 permissions:
   - action: "*"

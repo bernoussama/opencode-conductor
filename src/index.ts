@@ -9,14 +9,15 @@ import {
   buildConductorPermissions,
   fillUnset,
   isSet,
+  needsVariantRegistration,
   parseModelRef,
   selectWorkerModel,
   stripTools,
 } from "./contract";
 
 const DEFAULT_CONDUCTOR_MODEL = "cliproxy/gpt-5.6-sol#high";
-const DEFAULT_WORKER_MODEL = "opencode/muse-spark-1.3-contributor-free#xhigh";
-const DEFAULT_WORKER_FALLBACK_MODEL = "opencode/muse-spark-1.3-contributor-free#high";
+const DEFAULT_WORKER_MODEL = "cliproxy/revcmd/deepseek-v4.1-flash#max";
+const DEFAULT_WORKER_FALLBACK_MODEL = "cliproxy/revcmd/deepseek-v4.1-flash#high";
 
 interface Options {
   conductorId?: string;
@@ -30,7 +31,7 @@ interface Options {
 }
 
 const CONDUCTOR_SYSTEM_APPEND =
-  "You are an conductor. You never read files, edit files, or run shell commands directly: you have no direct tools. Delegate every concrete step to one of your subagents with a self-contained prompt (goal, constraints, repo paths, and the exact return shape you need). Fan out independent work in parallel with background subagents, then synthesize results into a decision-ready answer. Ask workers for distilled summaries, never raw transcripts.";
+  "You are a conductor. You never read files, edit files, or run shell commands directly: you have no direct tools. Delegate every concrete step to one of your subagents with a self-contained prompt (goal, constraints, repo paths, and the exact return shape you need). Fan out independent work in parallel with background subagents, then synthesize results into a decision-ready answer. Ask workers for distilled summaries, never raw transcripts.";
 
 function workerKind(id: string): "explore" | "shell-runner" | "coder" | null {
   if (id.endsWith("/explore")) return "explore";
@@ -82,11 +83,9 @@ export default Plugin.define({
       }
     }
 
-    // 1. Resolve the worker model against the LIVE provider catalog.
-    // The #max variant only works if the proxy actually serves it; the runner
-    // rejects unknown variants at child-session creation ("Variant unavailable").
-    // Probe source variants first: use preferred only when confirmed, else fall
-    // back. Never trust a transform that "succeeds" vacuously.
+    // 1. Make the preferred worker variant resolvable, then use it.
+    // Config-defined custom variants resolve in the live runner (verified),
+    // so register ours via transform when the source catalog lacks it.
     const preferredRef = parseModelRef(workerModel);
     const workerBase = preferredRef.modelID;
     let sourceVariants: Array<{ id: string }> | string[] | undefined;
@@ -112,18 +111,9 @@ export default Plugin.define({
       console.warn(`[conductor] could not probe provider variants: ${String(err)}`);
     }
 
-    const effectiveWorkerModel = selectWorkerModel(sourceVariants as any, workerModel, workerFallback);
-    if (effectiveWorkerModel !== workerModel) {
-      console.warn(
-        `[conductor] variant "${preferredRef.variant ?? "?"}" not served for ${preferredRef.providerID}/${workerBase}; workers use fallback ${workerFallback}`,
-      );
-    }
-
-    // Register the custom #max variant only when the source already serves it
-    // (keeps metadata in sync without advertising an unresolvable variant).
-    if (effectiveWorkerModel === workerModel && preferredRef.variant) {
+    let effectiveWorkerModel = workerFallback;
+    if (needsVariantRegistration(sourceVariants as any, preferredRef.variant)) {
       try {
-        const variantId = preferredRef.variant;
         await ctx.provider.transform((editor: any) => {
           try {
             const record = editor.get(preferredRef.providerID);
@@ -135,10 +125,12 @@ export default Plugin.define({
             // Leave catalog untouched on unexpected shapes.
           }
         });
-        void variantId;
+        effectiveWorkerModel = workerModel;
       } catch (err) {
-        console.warn(`[conductor] could not register variant: ${String(err)}`);
+        console.warn(`[conductor] variant registration failed, workers use fallback ${workerFallback}: ${String(err)}`);
       }
+    } else {
+      effectiveWorkerModel = selectWorkerModel(sourceVariants as any, workerModel, workerFallback);
     }
 
     // 2. Harden agents with fill-unset semantics (user config wins).

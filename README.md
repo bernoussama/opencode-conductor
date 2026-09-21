@@ -49,8 +49,8 @@ Project-local alternative: copy `agents/` into `.opencode/agents/` and reference
   "package": "/abs/path/opencode-conductor",
   "options": {
     "conductorModel": "cliproxy/gpt-5.6-sol#high",
-    "workerModel": "opencode/muse-spark-1.3-contributor-free#xhigh",
-    "workerFallbackModel": "opencode/muse-spark-1.3-contributor-free#high",
+    "workerModel": "cliproxy/revcmd/deepseek-v4.1-flash#max",
+    "workerFallbackModel": "cliproxy/revcmd/deepseek-v4.1-flash#high",
     "maxVariantSettings": { "reasoningEffort": "max" },
     "enableQuestion": true,
     "setDefault": true
@@ -58,7 +58,35 @@ Project-local alternative: copy `agents/` into `.opencode/agents/` and reference
 }
 ```
 
-Precedence is fill-unset: explicit user `agents.*` config always wins over the plugin. Worker agent files default to `opencode/muse-spark-1.3-contributor-free#xhigh`; the plugin probes the live provider catalog at setup and falls back to `workerFallbackModel` when the preferred variant isn't served (check logs for `[conductor]`).
+Precedence is fill-unset: explicit user `agents.*` config always wins over the plugin. Worker agent files default to `cliproxy/revcmd/deepseek-v4.1-flash#max`; the plugin registers that variant via provider transform when the source catalog lacks it, and falls back to `workerFallbackModel` only if registration itself fails.
+
+## Max-thinking workers
+
+Worker agents default to `cliproxy/revcmd/deepseek-v4.1-flash#max`. The proxy
+only advertises `low/medium/high`, so `#max` must be declared as a custom
+variant in a **project-level** config (it deep-merges correctly there):
+
+```jsonc
+// opencode.jsonc (project root — NOT the global file)
+{
+  "$schema": "https://opencode.ai/config.json",
+  "providers": {
+    "cliproxy": {
+      "models": {
+        "revcmd/deepseek-v4.1-flash": {
+          "variants": [{ "id": "max", "settings": { "reasoningEffort": "max" } }]
+        }
+      }
+    }
+  }
+}
+```
+
+Do not put this in the global `opencode.json` next to the legacy `provider`
+key: `providers` replaces `provider` for the same id within one document and
+the proxy entry breaks (likewise, `variants` inside the legacy entry
+invalidates the model). If `#max` is unavailable, the plugin falls back to
+`workerFallbackModel` (`#high`).
 
 ## Notes
 

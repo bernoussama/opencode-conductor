@@ -109,3 +109,11 @@ export function selectWorkerModel(
   if (!variant) return preferred;
   return sourceHasVariant(sourceVariants, variant) ? preferred : fallback;
 }
+
+export function needsVariantRegistration(
+  sourceVariants: readonly ExistingVariant[] | undefined,
+  preferredVariant: string | undefined,
+): boolean {
+  if (!preferredVariant) return false;
+  return !sourceHasVariant(sourceVariants, preferredVariant);
+}

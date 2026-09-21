@@ -1,7 +1,7 @@
 ---
 description: Implements changes, writes files, and runs commands/tests. Returns files changed, diff summary, test outcomes, and follow-ups.
 mode: subagent
-model: opencode/muse-spark-1.3-contributor-free#xhigh
+model: cliproxy/revcmd/deepseek-v4.1-flash#max
 steps: 12
 permissions:
   - action: "*"

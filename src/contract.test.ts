@@ -6,6 +6,7 @@ import {
   buildConductorPermissions,
   fillUnset,
   isSet,
+  needsVariantRegistration,
   parseModelRef,
   selectWorkerModel,
   stripTools,
@@ -138,5 +139,18 @@ describe("selectWorkerModel", () => {
   test("falls back on missing or unreadable source variants", () => {
     expect(selectWorkerModel(undefined, preferred, fallback)).toBe(fallback);
     expect(selectWorkerModel([], preferred, fallback)).toBe(fallback);
+  });
+});
+
+describe("needsVariantRegistration", () => {
+  test("true when preferred variant is missing from source", () => {
+    expect(needsVariantRegistration(["low", "high"], "max")).toBe(true);
+    expect(needsVariantRegistration([{ id: "low" }], "max")).toBe(true);
+  });
+
+  test("false when already present or no variant requested", () => {
+    expect(needsVariantRegistration(["low", "max"], "max")).toBe(false);
+    expect(needsVariantRegistration(undefined, undefined)).toBe(false);
+    expect(needsVariantRegistration(["low"], undefined)).toBe(false);
   });
 });
