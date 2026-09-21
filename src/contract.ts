@@ -117,3 +117,11 @@ export function needsVariantRegistration(
   if (!preferredVariant) return false;
   return !sourceHasVariant(sourceVariants, preferredVariant);
 }
+
+export function normalizeToolChoice(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const choice = (body as Record<string, unknown>).tool_choice;
+  if (choice === undefined || choice === "auto") return false;
+  (body as Record<string, unknown>).tool_choice = "auto";
+  return true;
+}

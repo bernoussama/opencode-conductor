@@ -10,6 +10,7 @@ import {
   fillUnset,
   isSet,
   needsVariantRegistration,
+  normalizeToolChoice,
   parseModelRef,
   selectWorkerModel,
   stripTools,
@@ -213,6 +214,40 @@ export default Plugin.define({
       } catch (err) {
         console.warn(`[conductor] could not register ${name} hook: ${String(err)}`);
       }
+    }
+
+    // 4. Guard against providers that only accept tool_choice "auto".
+    // Some OpenAI-compatible providers reject tool_choice "none", "required",
+    // and named choices even when tools are present. Rewrite every non-auto
+    // choice so subagent requests remain compatible with those providers.
+    try {
+      await ctx.session.hook("http.request", async (event: any) => {
+        try {
+          const req = event.request;
+          if (!req || typeof req.clone !== "function") return;
+          if (req.method && req.method.toUpperCase() === "GET") return;
+          const text = await req.clone().text();
+          if (!text || text.indexOf("tool_choice") < 0) return;
+          let body: any;
+          try {
+            body = JSON.parse(text);
+          } catch {
+            return;
+          }
+          if (!body || typeof body !== "object") return;
+          if (normalizeToolChoice(body)) {
+            event.request = new Request(req.url, {
+              method: req.method,
+              headers: req.headers,
+              body: JSON.stringify(body),
+            });
+          }
+        } catch {
+          // Never break a model request from a hook.
+        }
+      });
+    } catch (err) {
+      console.warn(`[conductor] could not register http.request hook: ${String(err)}`);
     }
   },
 });

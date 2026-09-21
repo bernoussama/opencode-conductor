@@ -7,6 +7,7 @@ import {
   fillUnset,
   isSet,
   needsVariantRegistration,
+  normalizeToolChoice,
   parseModelRef,
   selectWorkerModel,
   stripTools,
@@ -152,5 +153,35 @@ describe("needsVariantRegistration", () => {
     expect(needsVariantRegistration(["low", "max"], "max")).toBe(false);
     expect(needsVariantRegistration(undefined, undefined)).toBe(false);
     expect(needsVariantRegistration(["low"], undefined)).toBe(false);
+  });
+});
+
+describe("normalizeToolChoice", () => {
+  test("rewrites every unsupported choice to auto", () => {
+    for (const choice of ["none", "required", { type: "function", function: { name: "read" } }]) {
+      const body: any = { model: "m", tool_choice: choice };
+      expect(normalizeToolChoice(body)).toBe(true);
+      expect(body.tool_choice).toBe("auto");
+    }
+    const emptyTools: any = { model: "m", tools: [], tool_choice: "none" };
+    expect(normalizeToolChoice(emptyTools)).toBe(true);
+    expect(emptyTools.tool_choice).toBe("auto");
+
+    const withTools: any = {
+      model: "m",
+      tools: [{ type: "function" }],
+      tool_choice: "required",
+    };
+    expect(normalizeToolChoice(withTools)).toBe(true);
+    expect(withTools.tool_choice).toBe("auto");
+  });
+
+  test("leaves auto and missing choices alone", () => {
+    const auto: any = { model: "m", tool_choice: "auto" };
+    expect(normalizeToolChoice(auto)).toBe(false);
+    const missing: any = { model: "m" };
+    expect(normalizeToolChoice(missing)).toBe(false);
+    expect(normalizeToolChoice(null)).toBe(false);
+    expect(normalizeToolChoice("str")).toBe(false);
   });
 });

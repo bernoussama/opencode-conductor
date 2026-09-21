@@ -2,7 +2,7 @@
 description: Runs shell commands and inspects runtime state. Returns command, exit code, distilled output, and artifacts. Trusted with host shell; cannot edit via file tools.
 mode: subagent
 model: cliproxy/revcmd/deepseek-v4.1-flash#max
-steps: 10
+steps: 15
 permissions:
   - action: "*"
     resource: "*"

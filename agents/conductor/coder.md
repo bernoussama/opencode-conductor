@@ -2,7 +2,7 @@
 description: Implements changes, writes files, and runs commands/tests. Returns files changed, diff summary, test outcomes, and follow-ups.
 mode: subagent
 model: cliproxy/revcmd/deepseek-v4.1-flash#max
-steps: 12
+steps: 25
 permissions:
   - action: "*"
     resource: "*"

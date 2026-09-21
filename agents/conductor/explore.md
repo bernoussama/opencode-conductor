@@ -2,7 +2,7 @@
 description: Maps code and researches read-only. Returns file paths, key snippets, and architecture notes without editing anything.
 mode: subagent
 model: cliproxy/revcmd/deepseek-v4.1-flash#max
-steps: 10
+steps: 15
 permissions:
   - action: "*"
     resource: "*"
