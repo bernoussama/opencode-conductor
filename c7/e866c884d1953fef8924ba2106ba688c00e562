@@ -1,0 +1,26 @@
+agents/conductor/coder.md
+  h_3334a729b2507f 5
+agents/conductor/explore.md
+  h_3334a729b2507f 5
+agents/conductor/shell-runner.md
+  h_3334a729b2507f 5
+src/agents.ts
+  h_3334a729b2507f 5-7
+src/contract.test.ts
+  h_3334a729b2507f 10,158-187
+src/contract.ts
+  h_3334a729b2507f 120-127
+src/index.ts
+  h_3334a729b2507f 13,218-251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c7e866c884d1953fef8924ba2106ba688c00e562",
+  "prompts": {},
+  "humans": {
+    "h_3334a729b2507f": {
+      "author": "Oussama Bernou <oussama.bernou@outlook.com>"
+    }
+  }
+}
